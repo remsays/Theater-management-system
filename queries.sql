@@ -1,4 +1,5 @@
-with payment_details as (
+-- Q1. What are the total bookings for completed payments?
+With payment_details as (
     select 
         pa.booking_id,
         pa.payment_status
@@ -20,40 +21,42 @@ on bo.booking_id = pd.booking_id
 group by 1, 2
 order by total_tickets_sold desc;
 
-
+-- Q2. What is the booking rank by ticket count?
 select ev.event_name,
-per.show_time,
-bo.ticket_count,
-row_number() over (partition by ev.event_id order by  bo.ticket_count) as booking_rank
+       per.show_time,
+       bo.ticket_count,
+       row_number() over (partition by ev.event_id order by bo.ticket_count) as booking_rank
 from events ev 
 join performance per 
 on ev.event_id = per.event_id
 join booking bo 
 on per.performance_id = bo.performance_id;
 
-
-select ev.event_name, per.show_time, bo.ticket_count,
-case when bo.ticket_count >= 3 then 'group' else 'standard' end 
+-- Q3. Which bookings are group or standard?
+select ev.event_name, 
+       per.show_time, 
+       bo.ticket_count,
+       case when bo.ticket_count >= 3 then 'group' else 'standard' end as booking_category
 from events ev
 join performance per
 on ev.event_id = per.event_id
 join booking bo
 on bo.performance_id = per.performance_id;
 
-
-select ev.event_name, bo.ticket_count
+-- Q4. Which events have zero bookings?
+select ev.event_name, 
+       bo.ticket_count
 from events ev
 join performance per
 on ev.event_id = per.event_id
 left join booking bo
 on bo.performance_id = per.performance_id 
-where bo.ticket_count is null ;
+where bo.ticket_count is null;
 
-
-
+-- Q5. What is the total revenue for each event?
 select ev.event_name,
-    ev.genre,
-    sum(bo.ticket_count * ev.ticket_price) as total_revenue
+       ev.genre,
+       sum(bo.ticket_count * ev.ticket_price) as total_revenue
 from events ev
 join performance per 
 on ev.event_id = per.event_id
@@ -62,51 +65,50 @@ on per.performance_id = bo.performance_id
 group by ev.event_name, ev.genre
 order by total_revenue desc;
 
-
-select  genre,
-    round(avg(ev.duration_minutes), 2) as avg_duration,
-    round(avg(ev.ticket_price), 2) as avg_price
+-- Q6. What is the average duration and price per genre?
+select genre,
+       round(avg(ev.duration_minutes), 2) as avg_duration,
+       round(avg(ev.ticket_price), 2) as avg_price
 from events ev
 group by genre;
 
- 
- select 
-    ev.event_name,
-    ev.genre,
-    sum(bo.ticket_count * ev.ticket_price) as event_revenue,
-    rank() over (partition by ev.genre order by sum(bo.ticket_count * ev.ticket_price) desc) as revenue_rank_in_genre
+-- Q7. What is the revenue rank of events per genre?
+select ev.event_name,
+       ev.genre,
+       sum(bo.ticket_count * ev.ticket_price) as event_revenue,
+       rank() over (partition by ev.genre order by sum(bo.ticket_count * ev.ticket_price) desc) as revenue_rank_in_genre
 from events ev
 join performance per on ev.event_id = per.event_id
 join booking bo on per.performance_id = bo.performance_id
 group by ev.event_name, ev.genre;
- 
- select c.customer_name,
-c.membership_tier,
-sum(bo.total_amount) as total_spent
+
+-- Q8. How much did each customer spend?
+select c.customer_name,
+       c.membership_tier,
+       sum(bo.total_amount) as total_spent
 from customers c
 join booking bo on c.customer_id = bo.customer_id
 group by c.customer_id, c.customer_name, c.membership_tier
 order by total_spent desc;
 
-
-select 
-    ev.event_name,
-    per.show_time,
-    per.available_seats,
-    coalesce(sum(bo.ticket_count), 0) as total_booked_seats,
-    (per.available_seats - coalesce(sum(bo.ticket_count), 0)) as remaining_seats
+-- Q9. How many seats are left available?
+select ev.event_name,
+       per.show_time,
+       per.available_seats,
+       coalesce(sum(bo.ticket_count), 0) as total_booked_seats,
+       (per.available_seats - coalesce(sum(bo.ticket_count), 0)) as remaining_seats
 from performance per
 join events ev on per.event_id = ev.event_id
 left join booking bo on per.performance_id = bo.performance_id
 group by per.performance_id, ev.event_name, per.show_time, per.available_seats;
 
-
+-- Q10. What are the bookings for VIP customers?
 select c.customer_name,
-c.email,
-ev.event_name,
-bo.booking_date,
-bo.ticket_count,
-bo.total_amount
+       c.email,
+       ev.event_name,
+       bo.booking_date,
+       bo.ticket_count,
+       bo.total_amount
 from customers c
 join booking bo on c.customer_id = bo.customer_id
 join performance per on bo.performance_id = per.performance_id
@@ -114,4 +116,4 @@ join events ev on per.event_id = ev.event_id
 where c.membership_tier = 'VIP'
 order by bo.booking_date desc;
 
-
+order by bo.booking_date desc;
