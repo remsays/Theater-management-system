@@ -2,18 +2,18 @@
 
 A relational database project built with *PostgreSQL* to manage theater shows, customer bookings, ticket sales, and operational performance.
 
-## 🛠️ Tools Used
+##  Tools Used
 * *Database:* PostgreSQL
 * *Language:* SQL
 
 ---
 
-## 📌 Business Problem
+##  Business Problem
 Theater management entities often struggle to track performance schedules, ticket sales, and seat utilization effectively. Without structured analytics, identifying top-performing shows and managing unbooked slots becomes challenging. This project provides a robust SQL-based solution to extract actionable operational insights.
 
 ---
 
-## 📊 Key Queries & Insights
+##  Key Queries & Insights
 
 ### 1. Total Revenue per Event
 ```sql
