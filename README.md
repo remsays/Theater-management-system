@@ -31,7 +31,7 @@ Insight: Calculates total earnings for each theatrical production to identify to
 
 
 
-### 2. Revenue Ranking by Genre ( RANK )
+### 2. Revenue Ranking by Genre 
 ```sql
 select ev.event_name,
        ev.genre,
@@ -47,5 +47,37 @@ Insight: Ranks events by revenue specifically within their own artistic genre ca
 
 
 
+### 3. Zero-Sales Shows
+```sql
+select ev.event_name, 
+       bo.ticket_count
+from events ev
+join performance per on ev.event_id = per.event_id
+left join booking bo on bo.performance_id = per.performance_id 
+where bo.ticket_count is null;
+```
+Insight: Isolates shows and performances with zero bookings using an anti-join, helping marketing teams target inactive time slots.
+
+
+
+
+### 4. Seat Availability 
+```sql
+select ev.event_name,
+       per.show_time,
+       per.available_seats,
+       coalesce(sum(bo.ticket_count), 0) as total_booked_seats,
+       (per.available_seats - coalesce(sum(bo.ticket_count), 0)) as remaining_seats
+from performance per
+join events ev on per.event_id = ev.event_id
+left join booking bo on per.performance_id = bo.performance_id
+group by per.performance_id, ev.event_name, per.show_time, per.available_seats;
+```
+Insight: Safely computes remaining available seats for every show time using null-handling (⁠COALESCE⁠) to handle unbooked performances seamlessly.
+
+---
+
+## Conclusion
+This project successfully transformed raw relational database design into an analytical framework for theater administration. By deploying advanced SQL techniques—including Window Functions, Anti-Joins, and null handling—the project delivers deep operational intelligence regarding financial performance, risk management, and venue capacity optimization.
 
 
