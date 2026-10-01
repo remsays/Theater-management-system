@@ -25,3 +25,27 @@ join performance per on ev.event_id = per.event_id
 join booking bo on per.performance_id = bo.performance_id
 group by ev.event_name, ev.genre
 order by total_revenue desc;
+```
+
+Insight: Calculates total earnings for each theatrical production to identify top financial performers and guide future event planning.
+
+
+
+### 2. Revenue Ranking by Genre ( RANK )
+```sql
+select ev.event_name,
+       ev.genre,
+       sum(bo.ticket_count * ev.ticket_price) as event_revenue,
+       rank() over (partition by ev.genre order by sum(bo.ticket_count * ev.ticket_price) desc) as revenue_rank_in_genre
+from events ev
+join performance per on ev.event_id = per.event_id
+join booking bo on per.performance_id = bo.performance_id
+group by ev.event_name, ev.genre;
+```
+
+Insight: Ranks events by revenue specifically within their own artistic genre category using advanced window functions for fair evaluation.
+
+
+
+
+
